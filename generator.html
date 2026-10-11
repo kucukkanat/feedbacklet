@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create a bookmarklet — Feedbacklet</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%230f172a%22/><text x=%2250%22 y=%2268%22 font-size=%2254%22 text-anchor=%22middle%22 fill=%22white%22>✦</text></svg>" />
+</head>
+<body>
+  <main class="container">
+    <div class="page-head">
+      <h1>Create your bookmarklet</h1>
+      <p>Configure where reports go, then drag the button to your bookmarks bar — or share the link with your testers.</p>
+    </div>
+    <div class="gen">
+      <form id="form" autocomplete="off" onsubmit="return false">
+        <div class="card">
+          <h3>Recipient</h3>
+          <label class="field">
+            <span>Admin public key</span>
+            <div class="row" style="align-items:center">
+              <input type="text" name="admin" placeholder="npub1… or hex" spellcheck="false" style="font-family:var(--mono);font-size:13px" />
+              <button type="button" class="btn sm" id="use-mine" style="flex:none" hidden>Use my admin key</button>
+            </div>
+            <small id="admin-msg">Reports are encrypted to this key. Only its owner can read them. <a href="./admin.html">Create one in the admin inbox.</a></small>
+          </label>
+        </div>
+        <div class="card">
+          <h3>Project</h3>
+          <div class="row">
+            <label class="field"><span>Project name</span><input type="text" name="projectName" placeholder="Acme Dashboard" /></label>
+            <label class="field"><span>Project ID</span><input type="text" name="projectId" placeholder="acme-dashboard" spellcheck="false" style="font-family:var(--mono);font-size:13px" /></label>
+          </div>
+          <div class="row">
+            <label class="field"><span>Dialog title <em style="font-style:normal;color:var(--muted);font-weight:400">· optional</em></span><input type="text" name="title" placeholder="Help us improve Acme Dashboard" /></label>
+            <label class="field" style="flex:none"><span>Accent</span><input type="color" name="accent" value="#2563eb" /></label>
+          </div>
+          <small class="hint" style="margin-top:-6px">The project ID lets one admin key collect reports from many apps and filter them in the inbox.</small>
+        </div>
+        <div class="card">
+          <h3>Relays</h3>
+          <div class="relay-list" id="relays"></div>
+          <button type="button" class="btn sm" id="add-relay">+ Add relay</button>
+          <button type="button" class="btn sm" id="reset-relays">Reset to defaults</button>
+          <small class="hint" style="margin-top:10px">Reports are published to every relay. Your admin inbox must read from at least one of them.</small>
+        </div>
+        <div class="card">
+          <details>
+            <summary style="cursor:pointer;font-weight:550;font-size:14px">Advanced</summary>
+            <label class="field" style="margin-top:14px">
+              <span>Widget script URL</span>
+              <input type="url" name="src" spellcheck="false" style="font-family:var(--mono);font-size:13px" />
+              <small>Defaults to the copy hosted next to this page. Self-host <code>feedbacklet.js</code> if you prefer.</small>
+            </label>
+          </details>
+        </div>
+      </form>
+
+      <aside class="sticky">
+        <div class="card">
+          <h3>Your bookmarklet</h3>
+          <div id="errors"></div>
+          <div class="bookmarklet-drop">
+            <a class="bookmarklet" id="bm" href="#" aria-disabled="true" onclick="return false">✦ Feedback</a>
+            <span class="hint">Drag this button to your bookmarks bar.<br />Then click it on any page of your app.</span>
+          </div>
+          <div style="display:flex;gap:8px;margin:14px 0 18px">
+            <button class="btn accent" id="test" style="flex:1">Test it on this page</button>
+            <button class="btn" id="share" style="flex:1">Copy share link</button>
+          </div>
+          <div class="tabs" role="tablist">
+            <button role="tab" aria-selected="true" data-tab="bookmarklet">Bookmarklet</button>
+            <button role="tab" aria-selected="false" data-tab="embed">Embed snippet</button>
+            <button role="tab" aria-selected="false" data-tab="json">Config</button>
+          </div>
+          <div class="code-box"><pre id="code"></pre><button class="btn sm" id="copy">Copy</button></div>
+          <small class="hint" id="size" style="margin-top:8px"></small>
+        </div>
+      </aside>
+    </div>
+  </main>
+  <script type="module" src="/src/site/generator.ts"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Feedbacklet — encrypted feedback for any web app</title>
+  <meta name="description" content="A bookmarklet that lets anyone send feedback and bug reports, end-to-end encrypted over Nostr." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%230f172a%22/><text x=%2250%22 y=%2268%22 font-size=%2254%22 text-anchor=%22middle%22 fill=%22white%22>✦</text></svg>" />
+</head>
+<body>
+  <main>
+    <section class="hero container">
+      <div class="eyebrow"><b>Nostr</b> NIP-59 gift wrap · NIP-44 encryption</div>
+      <h1>Feedback &amp; bug reports<br /><span class="soft">for any web app, in one click.</span></h1>
+      <p class="lead">Feedbacklet is a bookmarklet your testers and users click on any page. They pick feedback or bug report, choose exactly what to share, and it's delivered end-to-end encrypted to you — and only you.</p>
+      <div class="actions">
+        <a class="btn primary" href="./generator.html">Create your bookmarklet →</a>
+        <button class="btn" id="try">Try it on this page</button>
+      </div>
+      <p class="hint" id="try-hint" style="margin-top:12px" hidden></p>
+
+      <div class="mock" aria-hidden="true">
+        <div class="mock-bar"><i></i><i></i><i></i><span class="url">https://your-app.example.com/dashboard</span></div>
+        <div class="mock-page">
+          <div class="mock-side"><span style="width:70%"></span><span></span><span style="width:80%"></span><span style="width:60%"></span><span style="width:75%"></span></div>
+          <div class="mock-main"><span style="width:40%;height:16px"></span><span></span><span style="width:90%"></span><span style="width:70%"></span><span style="width:85%;margin-top:20px"></span><span style="width:60%"></span></div>
+          <div class="mock-dialog">
+            <h4>Help us improve Acme</h4>
+            <div class="mock-choices">
+              <div>💬<b>Give feedback</b><small>Ideas, praise</small></div>
+              <div>🐞<b>Report a bug</b><small>Something broken</small></div>
+            </div>
+            <p style="margin:10px 0 0;color:#64748b;font-size:11.5px">🔒 End-to-end encrypted</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container">
+      <h2>Everything you need to debug, nothing you didn't ask for</h2>
+      <p class="sub">Bug reports collect rich context automatically — and the reporter can switch off every single piece of it.</p>
+      <div class="grid3">
+        <div class="feature"><div class="fi">📸</div><h3>Screenshots</h3><p>One checkbox captures the visible page (without the dialog), optionally with the faulty element highlighted.</p></div>
+        <div class="feature"><div class="fi">🧭</div><h3>Browser &amp; device</h3><p>URL, user agent, screen, viewport, language, timezone, network, memory and page-load timings.</p></div>
+        <div class="feature"><div class="fi">🪵</div><h3>Console &amp; errors</h3><p>Console output, uncaught errors, promise rejections and failed resources, captured once the bookmarklet runs.</p></div>
+        <div class="feature"><div class="fi">🎯</div><h3>Element picker</h3><p>Point at the broken button. You get a CSS selector, its text, size and HTML.</p></div>
+        <div class="feature"><div class="fi">🗄️</div><h3>Storage</h3><p>Names and sizes of localStorage, sessionStorage and cookies. Values only if explicitly allowed.</p></div>
+        <div class="feature"><div class="fi">👁️</div><h3>Full transparency</h3><p>Reporters can preview the exact JSON that will be sent before they hit send. Name is optional.</p></div>
+      </div>
+    </section>
+
+    <section class="section container">
+      <h2>Private by design</h2>
+      <p class="sub">Relays carry your traffic but can't read it, link it, or tell who sent it.</p>
+      <ol class="flow">
+        <li><h3>Throw-away key</h3><p>Every report is signed by a brand-new key generated in the browser and discarded right after sending.</p></li>
+        <li><h3>Sealed for you</h3><p>The report is encrypted with NIP-44 to your admin public key, baked into the bookmarklet.</p></li>
+        <li><h3>Gift wrapped</h3><p>The seal is wrapped again with another random key and a fuzzed timestamp (NIP-59).</p></li>
+        <li><h3>Only you unwrap</h3><p>Your admin inbox decrypts locally in your browser. Status and tags sync encrypted to yourself.</p></li>
+      </ol>
+      <pre class="diagram" style="margin-top:36px">report JSON ─gzip─▶ base64 ─split─▶ chunk₁ … chunkₙ
+  each chunk:  rumor  kind 1991  (unsigned, r=&lt;report id&gt;, chunk=i/n)
+               seal   kind 13    signed by throw-away key S, NIP-44 → admin
+               wrap   kind 1059  signed by random key Rᵢ, NIP-44 → admin, #p admin
+relays see:    kind 1059 · random pubkey · random timestamp · opaque ciphertext</pre>
+    </section>
+
+    <section class="cta container">
+      <h2>Up and running in a minute</h2>
+      <p class="sub" style="margin:0 auto 26px">Create an admin key, generate a bookmarklet, share it with your testers.</p>
+      <div class="actions" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <a class="btn" href="./admin.html">1 · Create admin key</a>
+        <a class="btn" href="./generator.html">2 · Generate bookmarklet</a>
+        <a class="btn primary" href="./admin.html">3 · Read reports</a>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><div class="container"><span>Feedbacklet · open source · no servers, no tracking</span><span>Works on any page that allows external scripts and WebSockets.</span></div></footer>
+  <script type="module" src="/src/site/home.ts"></script>
+</body>
+</html>

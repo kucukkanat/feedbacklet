@@ -1,0 +1,21 @@
+{
+  "name": "feedbacklet",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end encrypted feedback & bug report bookmarklet over Nostr",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && vite build -c vite.widget.config.ts",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "html2canvas-pro": "2.5.2",
+    "nostr-tools": "2.25.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "8.3.4"
+  }
+}
