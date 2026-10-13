@@ -11,7 +11,7 @@ the bookmarklet generator and the admin inbox.
 | Delivery | Tiny `javascript:` loader with embedded config → loads `feedbacklet.js` from GH Pages |
 | Screenshot | DOM render (html2canvas-pro), visible viewport, downscaled JPEG |
 | Large payloads | gzip + base64, split into ≤16 KB chunks, each chunk its own gift wrap |
-| Admin keys | Generate or import (nsec / hex / ncryptsec); stored as NIP-49 ncryptsec + passphrase |
+| Admin keys | Create (12-word NIP-06 mnemonic, shows words + nsec); sign in with nsec only; key kept in sessionStorage |
 | Manage | Status + tags, filters/search, multi-project, JSON/CSV export, cross-device sync (NIP-78, self-encrypted) |
 | Recipients | Single admin pubkey |
 | Bug data | Basics, console logs & errors (from load time on), storage key names (values opt-in), selection + element picker |

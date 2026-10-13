@@ -14,68 +14,63 @@ const app = document.getElementById('app')!
 
 // ---------------------------------------------------------------- lock screen
 
-function renderLock(mode?: 'unlock' | 'create' | 'import', error?: string) {
-  const stored = keys.storedIdentity()
-  mode ??= stored ? 'unlock' : 'create'
+function renderLock(mode: 'signin' | 'create' = 'signin', error?: string) {
   const err = error ? h('div', { class: 'error-box' }, error) : null
+  const seg = h('div', { class: 'seg', role: 'tablist' },
+    h('button', { type: 'button', 'aria-selected': String(mode === 'signin'), onclick: () => renderLock('signin') }, 'Sign in'),
+    h('button', { type: 'button', 'aria-selected': String(mode === 'create'), onclick: () => renderLock('create') }, 'Create new key'),
+  )
   let body: HTMLElement
 
-  if (mode === 'unlock' && stored) {
-    const pass = h('input', { type: 'password', placeholder: 'Passphrase', autocomplete: 'current-password' })
-    const remember = h('input', { type: 'checkbox', checked: true })
-    body = h('form', { onsubmit: (e: Event) => { e.preventDefault(); attempt(() => keys.unlock(pass.value, remember.checked), 'unlock') } },
-      h('h1', {}, 'Unlock your inbox'),
-      h('p', {}, 'Your admin key is stored encrypted in this browser.'),
-      h('div', { class: 'field' }, h('span', {}, 'Identity'), h('div', { class: 'mono' }, keys.encodeNpub(stored.pubkey))),
-      err,
-      h('label', { class: 'field' }, h('span', {}, 'Passphrase'), pass),
-      h('label', { class: 'check' }, remember, 'Stay unlocked until this tab is closed'),
-      h('button', { class: 'btn primary', style: 'width:100%' }, 'Unlock'),
-      h('p', { class: 'hint', style: 'text-align:center;margin-top:16px' },
-        h('a', { href: '#', onclick: (e: Event) => { e.preventDefault(); if (confirm('Remove the stored key from this browser? Make sure you have a backup, or you will lose access to all reports sent to it.')) { keys.forget(); renderLock('create') } } }, 'Use a different key')),
-    )
-    setTimeout(() => pass.focus())
-  } else {
-    const seg = h('div', { class: 'seg', role: 'tablist' },
-      h('button', { type: 'button', 'aria-selected': String(mode === 'create'), onclick: () => renderLock('create') }, 'Create new key'),
-      h('button', { type: 'button', 'aria-selected': String(mode === 'import'), onclick: () => renderLock('import') }, 'Import existing'),
-    )
-    const secret = h('textarea', { rows: 2, placeholder: 'nsec1…, ncryptsec1… or hex', spellcheck: 'false', style: 'font-family:var(--mono);font-size:13px' })
-    const oldPass = h('input', { type: 'password', placeholder: 'Passphrase of the ncryptsec', autocomplete: 'off' })
-    const oldPassField = h('label', { class: 'field', hidden: true }, h('span', {}, 'Backup passphrase'), oldPass)
-    secret.addEventListener('input', () => (oldPassField.hidden = !secret.value.trim().startsWith('ncryptsec1')))
-    const pass = h('input', { type: 'password', placeholder: 'At least 8 characters', autocomplete: 'new-password' })
-    const pass2 = h('input', { type: 'password', placeholder: 'Repeat passphrase', autocomplete: 'new-password' })
+  if (mode === 'signin') {
+    const secret = h('input', { type: 'password', placeholder: 'nsec1…', autocomplete: 'current-password', spellcheck: 'false', style: 'font-family:var(--mono);font-size:13px' })
     body = h('form', { onsubmit: (e: Event) => {
         e.preventDefault()
-        if (pass.value.length < 8) return renderLock(mode, 'Passphrase must be at least 8 characters.')
-        if (pass.value !== pass2.value) return renderLock(mode, 'Passphrases do not match.')
-        attempt(() => {
-          const id = mode === 'create' ? keys.createIdentity(pass.value) : keys.importIdentity(secret.value, pass.value, oldPass.value || undefined)
-          keys.rememberSession(id)
-          return id
-        }, mode!, mode === 'create')
+        try {
+          start(keys.signIn(secret.value))
+        } catch (e) {
+          renderLock('signin', (e as Error).message)
+        }
       } },
       h('h1', {}, 'Admin inbox'),
-      h('p', {}, 'Reports are encrypted to your admin key. It never leaves this browser unencrypted.'),
+      h('p', {}, 'Sign in with your secret key. It stays in this tab until you sign out or close it.'),
       seg,
       err,
-      mode === 'import' ? h('label', { class: 'field' }, h('span', {}, 'Secret key'), secret) : null,
-      mode === 'import' ? oldPassField : null,
-      h('label', { class: 'field' }, h('span', {}, 'Protect it with a passphrase'), pass, h('small', {}, 'Used to encrypt the key at rest (NIP-49). There is no recovery.')),
-      h('label', { class: 'field' }, pass2),
-      h('button', { class: 'btn primary', style: 'width:100%' }, mode === 'create' ? 'Create admin key' : 'Import key'),
+      h('label', { class: 'field' }, h('span', {}, 'Secret key (nsec)'), secret),
+      h('button', { class: 'btn primary', style: 'width:100%' }, 'Sign in'),
+    )
+    setTimeout(() => secret.focus())
+  } else {
+    body = h('div', {},
+      h('h1', {}, 'Admin inbox'),
+      h('p', {}, 'Reports are encrypted to your admin key. Create one to get started.'),
+      seg,
+      err,
+      h('button', { class: 'btn primary', style: 'width:100%', onclick: () => renderBackup(keys.createIdentity()) }, 'Create admin key'),
     )
   }
   app.replaceChildren(h('div', { class: 'lock-wrap' }, h('div', { class: 'card lock-card' }, body)))
 }
 
-function attempt(fn: () => keys.Identity, mode: 'unlock' | 'create' | 'import', isNew = false) {
-  try {
-    start(fn(), isNew)
-  } catch (e) {
-    renderLock(mode, (e as Error).message)
-  }
+function renderBackup(identity: keys.NewIdentity) {
+  const nsec = keys.encodeNsec(identity.sk)
+  const words = identity.mnemonic.split(' ')
+  const saved = h('input', { type: 'checkbox' })
+  const go = h('button', { class: 'btn primary', style: 'width:100%', disabled: true, onclick: () => start(identity, true) }, 'Continue to inbox')
+  saved.addEventListener('change', () => (go.disabled = !saved.checked))
+  const body = h('div', {},
+    h('h1', {}, 'Save your keys'),
+    h('p', {}, 'There is no recovery. If you lose these, all reports sent to this key are unreadable.'),
+    h('div', { class: 'field' }, h('span', {}, '12-word backup'),
+      h('ol', { class: 'seed' }, ...words.map((w) => h('li', {}, w))),
+      h('div', { class: 'btn-row' }, h('button', { class: 'btn sm', onclick: (e: Event) => copy(identity.mnemonic, e.currentTarget as HTMLElement) }, 'Copy words'))),
+    h('div', { class: 'field' }, h('span', {}, 'Secret key (nsec) — use this to sign in'),
+      h('div', { class: 'mono' }, nsec),
+      h('div', { class: 'btn-row' }, h('button', { class: 'btn sm', onclick: (e: Event) => copy(nsec, e.currentTarget as HTMLElement) }, 'Copy nsec'))),
+    h('label', { class: 'check' }, saved, 'I have saved my backup words and nsec'),
+    go,
+  )
+  app.replaceChildren(h('div', { class: 'lock-wrap' }, h('div', { class: 'card lock-card' }, body)))
 }
 
 // ---------------------------------------------------------------- app state
@@ -249,7 +244,7 @@ function renderSide() {
       h('div', { class: 'btn-row' },
         h('button', { class: 'btn sm', onclick: () => connect() }, 'Refresh'),
         h('button', { class: 'btn sm', onclick: () => openSettings() }, 'Settings'),
-        h('button', { class: 'btn sm', onclick: () => { keys.lock(); sub?.close(); pool.destroy(); location.reload() } }, 'Lock'),
+        h('button', { class: 'btn sm', onclick: () => { keys.signOut(); sub?.close(); pool.destroy(); location.reload() } }, 'Sign out'),
       ),
     ),
   )
@@ -410,7 +405,6 @@ function openSettings(welcome = false) {
   const relaysTa = h('textarea', { rows: 4, spellcheck: 'false', class: 'mono' }, state.relays.join('\n'))
   const nsecBox = h('div', { class: 'mono', hidden: true })
   const msg = h('div')
-  const newPass = h('input', { type: 'password', placeholder: 'New passphrase (min 8)', autocomplete: 'new-password' })
   const dlg = h('dialog', { onclose: () => dlg.remove() },
     h('div', { class: 'dlg-head' }, h('h3', {}, welcome ? 'Your admin key is ready 🎉' : 'Settings'), h('button', { class: 'btn sm', onclick: () => dlg.close() }, 'Close')),
     h('div', { class: 'dlg-body' },
@@ -428,7 +422,6 @@ function openSettings(welcome = false) {
         h('h4', {}, 'Backup'),
         h('p', { class: 'hint', style: 'margin:0 0 8px' }, 'If you lose this key, all reports sent to it are unreadable. Keep a backup somewhere safe.'),
         h('div', { class: 'btn-row' },
-          h('button', { class: 'btn sm', onclick: () => download(`feedbacklet-admin-${npub.slice(5, 13)}.ncryptsec.txt`, `${keys.storedIdentity()!.ncryptsec}\n\n# ${npub}\n# Encrypted with your passphrase (NIP-49). Import it in the Feedbacklet admin inbox.\n`, 'text/plain') }, 'Download encrypted backup'),
           h('button', { class: 'btn sm', onclick: (e: Event) => {
             nsecBox.hidden = !nsecBox.hidden
             nsecBox.textContent = nsecBox.hidden ? '' : keys.encodeNsec(id.sk)
@@ -450,15 +443,6 @@ function openSettings(welcome = false) {
           msg.replaceChildren(h('div', { class: 'ok-box' }, 'Relays saved. Reconnecting…'))
           connect()
         } }, 'Save relays')),
-      ),
-      welcome ? null : h('section', {},
-        h('h4', {}, 'Change passphrase'),
-        h('div', { class: 'row' }, newPass, h('button', { class: 'btn sm', style: 'flex:none', onclick: () => {
-          if (newPass.value.length < 8) return void msg.replaceChildren(h('div', { class: 'error-box' }, 'Passphrase must be at least 8 characters.'))
-          keys.changePassphrase(id, newPass.value)
-          newPass.value = ''
-          msg.replaceChildren(h('div', { class: 'ok-box' }, 'Passphrase changed. Download a fresh backup.'))
-        } }, 'Change')),
       ),
       welcome ? null : h('section', {},
         h('h4', {}, 'Danger zone'),

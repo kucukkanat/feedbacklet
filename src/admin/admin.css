@@ -100,3 +100,6 @@ dialog.lightbox img { max-width: 94vw; max-height: 90vh; border-radius: 8px; dis
   .mobile-back { display: inline-flex; }
   .list-items { max-height: none; }
 }
+.seed { list-style: none; counter-reset: seed; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 0 0 8px; padding: 0; }
+.seed li { counter-increment: seed; font-family: var(--mono); font-size: 13px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 7px; padding: 5px 8px; }
+.seed li::before { content: counter(seed) '. '; color: var(--muted); }

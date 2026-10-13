@@ -8,7 +8,7 @@ A bookmarklet that lets anyone send **feedback** or **bug reports** about any we
   Each data type can be switched off and previewed before sending.
 - **Generator** (`generator.html`): configure admin npub, project, relays, accent; drag the
   bookmarklet, copy an embed snippet, or share a prefilled generator link with testers.
-- **Admin inbox** (`admin.html`): create/import a key (stored as NIP-49 ncryptsec), decrypt
+- **Admin inbox** (`admin.html`): create a key (12-word NIP-06 backup + nsec) or sign in with an nsec, decrypt
   reports locally, statuses, tags, projects, search, JSON/CSV export, encrypted cross-device
   sync of workflow state (NIP-78).
 
